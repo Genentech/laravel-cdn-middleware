@@ -1,0 +1,27 @@
+{
+    "name": "genentech/laravel5-cdn-views",
+    "description": "Easily Integratable CDN views for laravel 5",
+    "authors": [
+    {
+        "name": "Matthew Bucci",
+        "email": "buccim2@gene.com"
+    }
+    ],
+    "license": "MIT",
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/view": "5.0.*",
+        "masterminds/html5": "2.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.5.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Genentech\\CdnViews\\": "src/"
+        },
+        "classmap": [
+            "tests/CDNTestCase.php"
+        ]
+    }
+}
