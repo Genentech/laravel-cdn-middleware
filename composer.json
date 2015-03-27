@@ -1,6 +1,6 @@
 {
     "name": "genentech/laravel5-cdn-views",
-    "description": "Easily Integratable CDN views for laravel 5",
+    "description": "Easily Integrable CDN views for laravel 5",
     "authors": [
     {
         "name": "Matthew Bucci",
@@ -11,6 +11,7 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/view": "5.0.*",
+        "illuminate/http": "5.0.*",
         "masterminds/html5": "2.*"
     },
     "require-dev": {
