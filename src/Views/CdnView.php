@@ -15,12 +15,16 @@ class CdnView extends View
 
     function __construct(Factory $factory, EngineInterface $engine, $view, $path, $data = array())
     {
-        parent::__construct($factory, $engine, $view, $path, $data = array());
+        parent::__construct($factory, $engine, $view, $path, $data);
         $request = App::make('request');
-        $cdn_url = Config::get('laravel5-cdn-views.cdn-url');
+        $cdn_url = Config::get('laravel5-cdn-views.cdn_url');
         $valid_tags = Config::get('laravel5-cdn-views.tags');
         $ssl_enabled = Config::get('laravel5-cdn-views.ssl_enabled');
         $this->cdn_helper = new CdnHelper($request, $cdn_url, $valid_tags, $ssl_enabled);
+        $disabled_routes = Config::get('laravel5-cdn-views.disabled_routes');
+        foreach($disabled_routes as $route) {
+            $this->cdn_helper->blacklistRoute($route);
+        }
     }
 
 
@@ -30,7 +34,7 @@ class CdnView extends View
 
         // only CDNify assets if on final pass of rendering
         if ($this->factory->doneRendering()) {
-            $contents = $this->cdn_helper->convertContentForCDN($contents);
+            $contents = $this->cdn_helper->convertPageForCDN($contents);
         }
 
         return $contents;
