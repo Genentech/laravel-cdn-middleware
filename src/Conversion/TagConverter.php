@@ -21,7 +21,7 @@ class TagConverter
         } else {
             $inner_callback = $this->callbacks[$tag];
             $this->callbacks[$tag] = function(DOMNode $node) use ($callback, $inner_callback) {
-                $callback($inner_callback($node));
+                return $callback($inner_callback($node));
             };
         }
     }

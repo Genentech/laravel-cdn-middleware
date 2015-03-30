@@ -1,9 +1,12 @@
 <?php
 namespace Genentech\CdnViews\Conversion;
 
-use App;
-use Config;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Request;
 use Masterminds\HTML5;
+use ReflectionMethod;
 use DOMNode;
 
 /**
@@ -16,28 +19,29 @@ class CdnHelper
     protected $tagConverter;
     protected $cdnUrl;
     protected $valid_tags;
+    protected $disabled_routes;
+    protected $enabled_for_ssl;
 
-    function __construct()
+    function __construct($cdnUrl, $valid_tags, $enabled_for_ssl = true)
     {
-        $this->cdnUrl = Config::get('laravel5-cdn-views.cdn_url');
-        $this->valid_tags = Config::get('laravel5-cdn-views.tags');
+        $this->cdnUrl = $cdnUrl;
+        $this->valid_tags = $valid_tags;
+        $this->enabled_for_ssl = $enabled_for_ssl;
         $this->tagConverter = new TagConverter();
         $this->registerTags();
     }
 
     private function registerTags() {
-        $url_conversion_function = self::convertURL;
-
         foreach($this->valid_tags as $tag) {
-            $this->tagConverter->registerTag($tag, function(DOMNode $element) use ($url_conversion_function) {
+            $this->tagConverter->registerTag($tag, function(DOMNode $element) {
                 if ($element->hasAttribute("src")) {
                     $element->setAttribute("src",
-                        $url_conversion_function($element->getAttribute("src"))
+                        $this->convertURL($element->getAttribute("src"))
                     );
                 }
                 if ($element->hasAttribute("href")) {
                     $element->setAttribute("href",
-                        $url_conversion_function($element->getAttribute("href"))
+                        $this->convertURL($element->getAttribute("href"))
                     );
                 }
                 return $element;
@@ -46,16 +50,18 @@ class CdnHelper
     }
 
     /**
-     * Convert Content For CDN
+     * Convert Page For CDN
      *
      * This function converts content to be served by the CDN
      * It parses through the DOM for any of the set targets
      * and replaces their src and href with the correct versions
+     * Because it adds any missing head or body tags it should only
+     * be run only on a whole page
      *
      * @param  string $content The original content
      * @return string            The content via CDN
      */
-    public function convertContentForCDN($content)
+    public function convertPageForCDN($content)
     {
         $html5 = new HTML5();
         $doc = $html5->loadHTML($content);
@@ -63,8 +69,8 @@ class CdnHelper
         foreach ($this->valid_tags as $target) {
             $nodes = $doc->getElementsByTagName($target);
             foreach ($nodes as $iterator => $element) {
-                $converted = $this->tagConverter($element);
-                $nodes->replaceChild($converted, $element);
+                $converted = $this->tagConverter->convertNode($element);
+                $element->parentNode->replaceChild($converted, $element);
             }
         }
 
@@ -81,11 +87,7 @@ class CdnHelper
      */
     public function convertURL($url)
     {
-        if ($this->shouldUseCDN()) {
-            return $this->prependCDN($url, Config::get('laravel5-cdn-views.cdn_url'));
-        }
-
-        return $this->prependCDN($url, "");
+        return $this->prependCDN($url, $this->cdnUrl);
     }
 
     /**
@@ -97,10 +99,10 @@ class CdnHelper
      * @param  string $pull_url The URL to be prepended; defaults to gene.com pullzone
      * @return string             The URL with the cdn prepended
      */
-    private static function prependCDN($url, $pull_url)
+    public static function prependCDN($url, $pull_url)
     {
 
-        $request = App::make('request');
+        //$request = App::make('request');
 
         // Check for invalid url
         if (empty($url)) {
@@ -111,9 +113,11 @@ class CdnHelper
         if (strpos($url, '//') !== FALSE) {
             // we have a URI, don't modify it
             return $url;
-        } else if (strpos('/', $url) !== 0) {
-            // we have a url not coming from the root, fix it
-            return $pull_url . $request->path() . $url;
+        } else if (strpos($url, '/') !== 0) {
+            Log::warning('Non root relative URL'. $url . 'passed to CDN helper');
+            // TODO: we have a url not coming from the root, we'll need to fix it using the request
+            // just return for now
+            return $url;
         } else {
             // it should be safe to concatenate the url
             return $pull_url . $url;
@@ -125,31 +129,26 @@ class CdnHelper
      *
      * Checks whether or not we should be using the CDN
      *
-     * @return boolean  True if production or debugging, false if not
+     * @return boolean
      */
-    private static function shouldUseCDN()
+    private function shouldUseCDN()
     {
-        if (! Config::get('laravel5-cdn-views.enabled')) {
-            return false;
-        }
-
         $request = App::make('request');
 
-        if($request->secure() && ! Config::get('laravel5-cdn-views.ssl_enabled')) {
+        if($request->secure() && ! $this->enabled_for_ssl) {
             return false;
         }
 
-        $disabled_routes = Config::get('laravel5-cdn-views.disabled_routes');
-        foreach($disabled_routes as $route) {
+        foreach($this->disabled_routes as $route) {
             if($request->is($route)) {
                 return false;
             }
         }
 
-        if (App::environment('production') ||  Config::get('laravel5-cdn-views.debug')) {
-            return true;
-        }
-
         return false;
+    }
+
+    public function blacklistRoute($route) {
+        $this->disabled_routes[] = $route;
     }
 }
