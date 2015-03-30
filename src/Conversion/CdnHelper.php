@@ -2,11 +2,9 @@
 namespace Genentech\CdnViews\Conversion;
 
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Masterminds\HTML5;
-use ReflectionMethod;
 use DOMNode;
 
 /**
@@ -18,12 +16,14 @@ class CdnHelper
 {
     protected $tagConverter;
     protected $cdnUrl;
-    protected $valid_tags;
-    protected $disabled_routes;
+    protected $request;
+    protected $valid_tags = [];
+    protected $disabled_routes = [];
     protected $enabled_for_ssl;
 
-    function __construct($cdnUrl, $valid_tags, $enabled_for_ssl = true)
+    function __construct($request, $cdnUrl, $valid_tags, $enabled_for_ssl = true)
     {
+        $this->request = $request;
         $this->cdnUrl = $cdnUrl;
         $this->valid_tags = $valid_tags;
         $this->enabled_for_ssl = $enabled_for_ssl;
@@ -87,7 +87,11 @@ class CdnHelper
      */
     public function convertURL($url)
     {
-        return $this->prependCDN($url, $this->cdnUrl);
+        if ($this->shouldUseCDN()) {
+            return $this->prependCDN($url, $this->cdnUrl);
+        } else {
+            return $url;
+        }
     }
 
     /**
@@ -133,8 +137,7 @@ class CdnHelper
      */
     private function shouldUseCDN()
     {
-        $request = App::make('request');
-
+        $request = $this->request;
         if($request->secure() && ! $this->enabled_for_ssl) {
             return false;
         }
@@ -145,7 +148,7 @@ class CdnHelper
             }
         }
 
-        return false;
+        return true;
     }
 
     public function blacklistRoute($route) {
