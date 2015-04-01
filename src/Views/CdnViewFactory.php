@@ -5,7 +5,6 @@ use Illuminate\View\Factory as Factory;
 
 class CdnViewFactory extends Factory
 {
-
     public function make($view, $data = array(), $mergeData = array())
     {
         if (isset($this->aliases[$view])) {
@@ -22,5 +21,4 @@ class CdnViewFactory extends Factory
 
         return $view;
     }
-
 }

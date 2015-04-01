@@ -1,9 +1,7 @@
 <?php
 namespace Genentech\CdnViews\Conversion;
 
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Request;
 use Masterminds\HTML5;
 use DOMNode;
 
@@ -14,36 +12,43 @@ use DOMNode;
  */
 class CdnHelper
 {
-    protected $tagConverter;
-    protected $cdnUrl;
     protected $request;
+    protected $cdnUrl;
     protected $valid_tags = [];
-    protected $disabled_routes = [];
     protected $enabled_for_ssl;
+    protected $tagConverter;
+    protected $disabled_routes = [];
 
-    function __construct($request, $cdnUrl, $valid_tags, $enabled_for_ssl = true)
+    public function __construct($request, $cdnUrl, $valid_tags, $enabled_for_ssl = true)
     {
         $this->request = $request;
         $this->cdnUrl = $cdnUrl;
         $this->valid_tags = $valid_tags;
         $this->enabled_for_ssl = $enabled_for_ssl;
         $this->tagConverter = new TagConverter();
+
         $this->registerTags();
     }
 
-    private function registerTags() {
-        foreach($this->valid_tags as $tag) {
-            $this->tagConverter->registerTag($tag, function(DOMNode $element) {
+    /**
+     * Register all provided tags with the tag converter
+     */
+    private function registerTags()
+    {
+        foreach ($this->valid_tags as $tag) {
+            $this->tagConverter->registerTag($tag, function (DOMNode $element) {
                 if ($element->hasAttribute("src")) {
                     $element->setAttribute("src",
                         $this->convertURL($element->getAttribute("src"))
                     );
                 }
+
                 if ($element->hasAttribute("href")) {
                     $element->setAttribute("href",
                         $this->convertURL($element->getAttribute("href"))
                     );
                 }
+
                 return $element;
             });
         }
@@ -52,14 +57,14 @@ class CdnHelper
     /**
      * Convert Page For CDN
      *
-     * This function converts content to be served by the CDN
+     * This function converts content to be served by the CDN.
      * It parses through the DOM for any of the set targets
-     * and replaces their src and href with the correct versions
+     * and replaces their src and href with the correct versions.
      * Because it adds any missing head or body tags it should only
-     * be run only on a whole page
+     * be run only on a whole page.
      *
      * @param  string $content The original content
-     * @return string            The content via CDN
+     * @return string          The content via CDN
      */
     public function convertPageForCDN($content)
     {
@@ -68,6 +73,7 @@ class CdnHelper
 
         foreach ($this->valid_tags as $target) {
             $nodes = $doc->getElementsByTagName($target);
+
             foreach ($nodes as $iterator => $element) {
                 $converted = $this->tagConverter->convertNode($element);
                 $element->parentNode->replaceChild($converted, $element);
@@ -80,10 +86,10 @@ class CdnHelper
     /**
      * Convert URL
      *
-     * This function converts a URL to be served via the CDN
+     * Converts a URL to be served via the CDN
      *
      * @param  string $url The URL to be converted
-     * @return string        The URL with the correct cdn prepended
+     * @return string      The URL with the correct CDN URL prepended
      */
     public function convertURL($url)
     {
@@ -97,16 +103,15 @@ class CdnHelper
     /**
      * Prepend CDN
      *
-     * This function turns a regular url into a CDN url
+     * Turns a regular url into a CDN-prepended url
      *
-     * @param  string $url The URL to be converted
-     * @param  string $pull_url The URL to be prepended; defaults to gene.com pullzone
-     * @return string             The URL with the cdn prepended
+     * @param  string $url       The URL to be converted
+     * @param  string $pull_url  The URL to be prepended
+     * @return string            The URL with the cdn prepended
      */
     public static function prependCDN($url, $pull_url)
     {
-
-        //$request = App::make('request');
+        // $request = App::make('request');
 
         // Check for invalid url
         if (empty($url)) {
@@ -114,12 +119,13 @@ class CdnHelper
         }
 
         // Prepend the CDN url
-        if (strpos($url, '//') !== FALSE) {
-            // we have a URI, don't modify it
+        if (strpos($url, '//') !== false) {
+            // URI; don't modify it
             return $url;
         } else if (strpos($url, '/') !== 0) {
-            Log::warning('Non root relative URL'. $url . 'passed to CDN helper');
             // TODO: we have a url not coming from the root, we'll need to fix it using the request
+            Log::warning('Non root relative URL ' . $url . ' passed to CDN helper');
+
             // just return for now
             return $url;
         } else {
@@ -138,12 +144,13 @@ class CdnHelper
     private function shouldUseCDN()
     {
         $request = $this->request;
-        if($request->secure() && ! $this->enabled_for_ssl) {
+
+        if ($request->secure() && !$this->enabled_for_ssl) {
             return false;
         }
 
-        foreach($this->disabled_routes as $route) {
-            if($request->is($route)) {
+        foreach ($this->disabled_routes as $route) {
+            if ($request->is($route)) {
                 return false;
             }
         }
@@ -151,7 +158,13 @@ class CdnHelper
         return true;
     }
 
-    public function blacklistRoute($route) {
+    /**
+     * Add a route to the blacklist
+     *
+     * @param string $route
+     */
+    public function blacklistRoute($route)
+    {
         $this->disabled_routes[] = $route;
     }
 }

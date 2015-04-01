@@ -5,9 +5,11 @@ use Mockery as M;
 
 class TagConverterTest extends PHPUnit_Framework_TestCase
 {
-    public function test_itRegistersCallbacks() {
+    /** @test */
+    public function it_registers_callbacks()
+    {
         $tag_converter = new TagConverter();
-        $tag_converter->registerTag('script', function (DOMNode $node){
+        $tag_converter->registerTag('script', function (DOMNode $node) {
             $node->nodeValue = 'I Was Tested';
             return $node;
         });
@@ -18,14 +20,16 @@ class TagConverterTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('I Was Tested', $result->nodeValue);
     }
 
-    public function test_itNestsCallbacks() {
+    /** @test */
+    public function it_nests_callbacks()
+    {
         $tag_converter = new TagConverter();
-        $tag_converter->registerTag('script', function (DOMNode $node){
+        $tag_converter->registerTag('script', function (DOMNode $node) {
             $node->nodeValue = 'I Was Tested';
             return $node;
         });
 
-        $tag_converter->registerTag('script', function (DOMNode $node){
+        $tag_converter->registerTag('script', function (DOMNode $node) {
             $node->nodeValue = strtoupper($node->nodeValue);
             return $node;
         });
@@ -36,9 +40,11 @@ class TagConverterTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('I WAS TESTED', $result->nodeValue);
     }
 
-    public function test_itRemovesCallbacks() {
+    /** @test */
+    public function it_removes_callbacks()
+    {
         $tag_converter = new TagConverter();
-        $tag_converter->registerTag('script', function (DOMNode $node){
+        $tag_converter->registerTag('script', function (DOMNode $node) {
             $node->nodeValue = 'I Was Tested';
             return $node;
         });
