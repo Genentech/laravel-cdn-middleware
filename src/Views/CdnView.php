@@ -13,20 +13,23 @@ class CdnView extends View
 {
     protected $cdn_helper;
 
-    function __construct(Factory $factory, EngineInterface $engine, $view, $path, $data = array())
+    public function __construct(Factory $factory, EngineInterface $engine, $view, $path, $data = array())
     {
         parent::__construct($factory, $engine, $view, $path, $data);
-        $request = App::make('request');
-        $cdn_url = Config::get('laravel5-cdn-views.cdn_url');
-        $valid_tags = Config::get('laravel5-cdn-views.tags');
-        $ssl_enabled = Config::get('laravel5-cdn-views.ssl_enabled');
-        $this->cdn_helper = new CdnHelper($request, $cdn_url, $valid_tags, $ssl_enabled);
+
+        $this->cdn_helper = new CdnHelper(
+            App::make('request'),
+            Config::get('laravel5-cdn-views.cdn_url'),
+            Config::get('laravel5-cdn-views.tags'),
+            Config::get('laravel5-cdn-views.ssl_enabled')
+        );
+
         $disabled_routes = Config::get('laravel5-cdn-views.disabled_routes');
-        foreach($disabled_routes as $route) {
+
+        foreach ($disabled_routes as $route) {
             $this->cdn_helper->blacklistRoute($route);
         }
     }
-
 
     public function render(Closure $callback = null)
     {

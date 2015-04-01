@@ -21,7 +21,7 @@ final class CdnViewServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__.'/../config/laravel5-cdn-views.php' => config_path('laravel5-cdn-views.php'),
+            __DIR__ . '/../config/laravel5-cdn-views.php' => config_path('laravel5-cdn-views.php'),
         ]);
     }
 
@@ -40,6 +40,7 @@ final class CdnViewServiceProvider extends ServiceProvider
     protected function extendViews() {
         $this->app->extend('view', function () {
             $app = app();
+
             // Next we need to grab the engine resolver instance that will be used by the
             // environment. The resolver will be used by an environment to get each of
             // the various engine implementations such as plain PHP or Blade engine.
