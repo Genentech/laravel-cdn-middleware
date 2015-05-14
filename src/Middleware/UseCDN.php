@@ -9,6 +9,10 @@ class UseCDN
 {
     public function handle($request, Closure $next)
     {
+        if ( ! Config::get('laravel5-cdn-views.enabled')) {
+            return $next($request);
+        }
+
         $cdn_url = Config::get('laravel5-cdn-views.cdn_url');
         $valid_tags = Config::get('laravel5-cdn-views.tags');
         $ssl_enabled = Config::get('laravel5-cdn-views.ssl_enabled');

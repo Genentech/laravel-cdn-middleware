@@ -32,7 +32,9 @@ final class CdnViewServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app['config']['laravel5-cdn-views.blade_enabled']) {
+        $blade_enabled = $this->app['config']['laravel5-cdn-views.blade_enabled'];
+        $cdn_enabled = $this->app['config']['laravel5-cdn-views.enabled'];
+        if ($cdn_enabled && $blade_enabled) {
             $this->extendViews();
         }
     }
