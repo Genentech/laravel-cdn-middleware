@@ -27,11 +27,15 @@ php artisan vendor:publish
 And then configure the file at /config/laravel5-cdn-views.php
 
 # Usage
-add
+add the following to your providers list
 ```php
 Genentech\CdnViews\CdnViewServiceProvider
 ```
-to your providers list to enable the cdn on all views.
+and enable blade_views to enable cdn helper on all blade views or add 
+```php
+ Genentech\CdnViews\Middleware\UseCDN to your request Kernel. 
+```
+
 root relative urls will be transformed,
 //:resource urls will not 
 not root relative urls will be left intact and logged
