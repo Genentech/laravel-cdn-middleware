@@ -63,6 +63,10 @@ class CdnHelper
      */
     public function convertPageForCDN($content)
     {
+        if ( ! $this->shouldUseCDN()) {
+            return $content;
+        }
+
         $html5 = new HTML5();
         $doc = $html5->loadHTML($content);
 
