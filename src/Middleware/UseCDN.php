@@ -24,9 +24,12 @@ class UseCDN
         }
 
         $response = $next($request);
-        $content = $response->getOriginalContent();
-        $cdn_content = $cdn_helper->convertPageForCDN($content);
-        $response->setContent($cdn_content);
+
+        if (method_exists($response,'getOriginalContent')) {
+            $content = $response->getOriginalContent();
+            $cdn_content = $cdn_helper->convertPageForCDN($content);
+            $response->setContent($cdn_content);
+        }
 
         return $response;
     }
