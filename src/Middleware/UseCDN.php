@@ -20,10 +20,14 @@ class UseCDN
 
         $disabled_routes = Config::get('laravel5-cdn-views.disabled_routes');
         foreach($disabled_routes as $route) {
-            $this->cdn_helper->blacklistRoute($route);
+            $cdn_helper->blacklistRoute($route);
         }
 
-        $content = $next($request);
-        return $cdn_helper->convertPageForCDN($content);
+        $response = $next($request);
+        $content = $response->getOriginalContent();
+        $cdn_content = $cdn_helper->convertPageForCDN($content);
+        $response->setContent($cdn_content);
+
+        return $response;
     }
 }
