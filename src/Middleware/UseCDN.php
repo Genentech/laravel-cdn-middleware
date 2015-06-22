@@ -2,7 +2,9 @@
 namespace Genentech\CdnViews\Middleware;
 
 use Closure;
+use Exception;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Genentech\CdnViews\Conversion\CdnHelper;
 
 class UseCDN
@@ -23,13 +25,24 @@ class UseCDN
             $cdn_helper->blacklistRoute($route);
         }
 
-        $response = $next($request);
-
-        if (method_exists($response,'getOriginalContent')) {
-            $content = $response->getOriginalContent();
-            $cdn_content = $cdn_helper->convertPageForCDN($content);
-            $response->setContent($cdn_content);
+        $disabled_links = Config::get('laravel5-cdn-views.disabled_links');
+        foreach($disabled_links as $link) {
+            $cdn_helper->blacklistLink($link);
         }
+
+        $response = $next($request);
+	try {
+            if (method_exists($response,'getOriginalContent')) {
+                $content = $response->getOriginalContent();
+		if (method_exists($content,'render')) {
+                    $content = $content->render();
+                    $cdn_content = $cdn_helper->convertPageForCDN($content);
+                    $response->setContent($cdn_content);
+		}
+            }
+        } catch(\Exception $exception) {
+            Log::error($exception);
+	}
 
         return $response;
     }

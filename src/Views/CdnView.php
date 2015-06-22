@@ -29,6 +29,12 @@ class CdnView extends View
         foreach ($disabled_routes as $route) {
             $this->cdn_helper->blacklistRoute($route);
         }
+
+        $disabled_links = Config::get('laravel5-cdn-views.disabled_links');
+
+        foreach ($disabled_links as $link) {
+            $this->cdn_helper->blacklistLink($link);
+        }
     }
 
     public function render(Closure $callback = null)
