@@ -2,6 +2,7 @@
 namespace Genentech\CdnViews\Conversion;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Masterminds\HTML5;
 use DOMNode;
 
@@ -18,6 +19,7 @@ class CdnHelper
     protected $enabled_for_ssl;
     protected $tagConverter;
     protected $disabled_routes = [];
+    protected $disabled_links = [];
 
     public function __construct($request, $cdnUrl, $valid_tags, $enabled_for_ssl = true)
     {
@@ -97,7 +99,7 @@ class CdnHelper
      */
     public function convertURL($url)
     {
-        if ($this->shouldUseCDN()) {
+        if ($this->shouldUseLink($url)) {
             return $this->prependCDN($url, $this->cdnUrl);
         } else {
             return $url;
@@ -163,6 +165,21 @@ class CdnHelper
     }
 
     /**
+     * Checks whether or not we should be using the link
+     *
+     * @return boolean
+     */
+    private function shouldUseLink($url)
+    {
+        foreach ($this->disabled_links as $pattern) {
+            if (Str::is($pattern, $url)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Add a route to the blacklist
      *
      * @param string $route
@@ -170,5 +187,15 @@ class CdnHelper
     public function blacklistRoute($route)
     {
         $this->disabled_routes[] = $route;
+    }
+
+    /**
+     * Add a link to the blacklist
+     *
+     * @param string $link
+     */
+    public function blacklistLink($link)
+    {
+        $this->disabled_links[] = $link;
     }
 }
