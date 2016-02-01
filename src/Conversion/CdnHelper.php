@@ -13,20 +13,14 @@ use DOMNode;
  */
 class CdnHelper
 {
-    protected $request;
     protected $cdnUrl;
     protected $valid_tags = [];
-    protected $enabled_for_ssl;
     protected $tagConverter;
-    protected $disabled_routes = [];
-    protected $disabled_links = [];
 
-    public function __construct($request, $cdnUrl, $valid_tags, $enabled_for_ssl = true)
+    public function __construct($cdnUrl, $valid_tags)
     {
-        $this->request = $request;
         $this->cdnUrl = $cdnUrl;
         $this->valid_tags = $valid_tags;
-        $this->enabled_for_ssl = $enabled_for_ssl;
         $this->tagConverter = new TagConverter();
 
         $this->registerTags();
@@ -70,10 +64,6 @@ class CdnHelper
      */
     public function convertPageForCDN($content)
     {
-        if ( ! $this->shouldUseCDN()) {
-            return $content;
-        }
-
         $html5 = new HTML5();
         $doc = $html5->loadHTML($content);
 
@@ -99,11 +89,7 @@ class CdnHelper
      */
     public function convertURL($url)
     {
-        if ($this->shouldUseLink($url)) {
-            return $this->prependCDN($url, $this->cdnUrl);
-        } else {
-            return $url;
-        }
+        return $this->prependCDN($url, $this->cdnUrl);
     }
 
     /**
@@ -117,8 +103,6 @@ class CdnHelper
      */
     public static function prependCDN($url, $pull_url)
     {
-        // $request = App::make('request');
-
         // Check for invalid url
         if (empty($url)) {
             return $url;
@@ -138,64 +122,5 @@ class CdnHelper
             // it should be safe to concatenate the url
             return $pull_url . $url;
         }
-    }
-
-    /**
-     * CDN Enabled
-     *
-     * Checks whether or not we should be using the CDN
-     *
-     * @return boolean
-     */
-    private function shouldUseCDN()
-    {
-        $request = $this->request;
-
-        if ($request->secure() && !$this->enabled_for_ssl) {
-            return false;
-        }
-
-        foreach ($this->disabled_routes as $route) {
-            if ($request->is($route)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Checks whether or not we should be using the link
-     *
-     * @return boolean
-     */
-    private function shouldUseLink($url)
-    {
-        foreach ($this->disabled_links as $pattern) {
-            if (Str::is($pattern, $url)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Add a route to the blacklist
-     *
-     * @param string $route
-     */
-    public function blacklistRoute($route)
-    {
-        $this->disabled_routes[] = $route;
-    }
-
-    /**
-     * Add a link to the blacklist
-     *
-     * @param string $link
-     */
-    public function blacklistLink($link)
-    {
-        $this->disabled_links[] = $link;
     }
 }

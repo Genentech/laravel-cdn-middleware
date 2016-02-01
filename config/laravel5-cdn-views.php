@@ -1,9 +1,8 @@
 <?php
 
 return [
-    'cdn_url' => 'http://cdn.gene.com',
-    'enabled' => true,
-    'blade_enabled' => true,
+    'cdn_url' => 'https://cdn.com',
+    'enabled' => env('CDN_ENABLED', false),
     'ssl_enabled' => false,
     'tags' => [
         'script',

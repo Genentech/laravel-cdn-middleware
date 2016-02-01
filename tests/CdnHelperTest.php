@@ -4,8 +4,6 @@ use Genentech\CdnViews\Conversion\CdnHelper;
 use Mockery as m;
 
 const CDN_URL = "http://cdn.example.com";
-const SSL_Enabled = true;
-const SSL_Disabled = false;
 
 class CdnHelperTest extends PHPUnit_Framework_TestCase
 {
@@ -20,10 +18,7 @@ class CdnHelperTest extends PHPUnit_Framework_TestCase
     /** @test */
     public function it_converts_basic_urls()
     {
-        $request = m::mock('RequestMock');
-        $request->shouldReceive('secure')->andReturn(false);
-
-        $cdn_helper = new CdnHelper($request, CDN_URL, $this->validTags, SSL_Enabled);
+        $cdn_helper = new CdnHelper(CDN_URL, $this->validTags);
 
         $test_url = $cdn_helper->convertURL('/assets/test/img/someimage.jpg');
         $this->assertEquals(CDN_URL . '/assets/test/img/someimage.jpg', $test_url);
@@ -49,10 +44,7 @@ class CdnHelperTest extends PHPUnit_Framework_TestCase
 
         $log->shouldReceive('warning')->once();
 
-        $request = m::mock('RequestMock');
-        $request->shouldReceive('secure')->andReturn(false);
-
-        $cdn_helper = new CdnHelper($request, CDN_URL, $this->validTags, SSL_Enabled);
+        $cdn_helper = new CdnHelper(CDN_URL, $this->validTags);
 
         $test_url = $cdn_helper->convertURL('assets/test/img/someimage.jpg');
         $this->assertEquals('assets/test/img/someimage.jpg', $test_url);
@@ -61,48 +53,13 @@ class CdnHelperTest extends PHPUnit_Framework_TestCase
     /** @test */
     public function it_converts_whole_pages()
     {
-        $request = m::mock('RequestMock');
-        $request->shouldReceive('secure')->andReturn(false);
-
-        $cdn_helper = new CdnHelper($request, CDN_URL, $this->validTags, SSL_Enabled);
+        $cdn_helper = new CdnHelper(CDN_URL, $this->validTags);
 
         $input = file_get_contents('tests/inputHTML.txt');
         $expected = file_get_contents('tests/expectedOutput.txt');
 
         $output = $cdn_helper->convertPageForCDN($input);
         $this->assertEquals($expected, $output);
-    }
-
-    /** @test */
-    public function it_blacklists_routes()
-    {
-        $request = m::mock('RequestMock');
-        $request->shouldReceive('secure')->andReturn(false);
-        $request->shouldReceive('is')->with('/contact-us/')->andReturn(true);
-
-        $cdn_helper = new CdnHelper($request, CDN_URL, $this->validTags, SSL_Enabled);
-        $cdn_helper->blacklistRoute("/contact-us/");
-
-        $input = file_get_contents('tests/inputHTML.txt');
-        $expected = file_get_contents('tests/expectedOutput.txt');
-
-        $output = $cdn_helper->convertPageForCDN($input);
-        $this->assertNotEquals($expected, $output);
-    }
-
-    /** @test */
-    public function it_respects_ssl_constraints()
-    {
-        $request = m::mock('RequestMock');
-        $request->shouldReceive('secure')->andReturn(true);
-
-        $cdn_helper = new CdnHelper($request, CDN_URL, $this->validTags, SSL_Disabled);
-
-        $input = file_get_contents('tests/inputHTML.txt');
-        $expected = file_get_contents('tests/expectedOutput.txt');
-
-        $output = $cdn_helper->convertPageForCDN($input);
-        $this->assertNotEquals($expected, $output);
     }
 
     public function tearDown()
