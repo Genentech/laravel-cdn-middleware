@@ -1,11 +1,11 @@
 # Laravel 5 CDN Views
-A Basic integration for pull zone CDN's for laravel, it works with both blade and phtml files.
+A Basic middleware integration for pull zone CDN's for laravel
 
 
 
 
 # Composer Installation
-Add/integrate the following to your project's composer.json file. You'll have to have your SSH key attached to your github account:
+Add/integrate the following to your project's composer.json file. 
 
 ```javascript
 "repositories": [ 
@@ -31,18 +31,19 @@ add the following to your providers list
 ```php
 Genentech\CdnViews\CdnViewServiceProvider
 ```
-and enable blade_views to enable cdn helper on all blade views or add 
+and add the following to app/Http/Kernel.php
 ```php
- Genentech\CdnViews\Middleware\UseCDN to your request Kernel. 
+ Genentech\CdnViews\Middleware\UseCDN
 ```
 
-root relative urls will be transformed,
-//:resource urls will not 
+root relative urls will be transformed, and //:resource urls will not 
 not root relative urls will be left intact and logged
 
 You can also invoke the CDN helper yourself and convert urls using
 ```php
-$cdn_helper =  new CdnHelper($request, CDN_URL, $this->validTags, SSL_Enabled);
+$pullzone = 'https://cdn.com'; // or Config::get('laravel5-cdn-views.cdn_url');
+$validTags = ['style', 'scripts']; // or Config::get('laravel5-cdn-views.tags');
+$cdn_helper =  new CdnHelper(CDN_URL, $this->validTags);
 $cdn_url = $cdn_helper->convertUrl('/foo.txt');
 ```
 
