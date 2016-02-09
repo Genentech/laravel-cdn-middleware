@@ -8,17 +8,12 @@
     }
     ],
     "license": "MIT",
-    "repositories": [
-        {
-            "url": "https://github.com/Genentech/html5-php.git",
-            "type": "git"
-        }
-    ],
+    "repositories": [],
     "require": {
         "php": ">=5.4.0",
         "illuminate/view": "5.0.*",
         "illuminate/http": "5.0.*",
-        "masterminds/html5": "dev-prefixing"
+        "masterminds/html5": "dev-xml-namespaces"
     },
     "require-dev": {
         "phpunit/phpunit": "4.5.*",
