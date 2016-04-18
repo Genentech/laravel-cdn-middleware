@@ -28,7 +28,7 @@ class UseCDN
         $disabled_routes = Config::get('laravel5-cdn-views.disabled_routes');
         foreach ($disabled_routes as $route) {
             if ($request->is($route)) {
-                return false;
+                return $next($request);
             }
         }
 
