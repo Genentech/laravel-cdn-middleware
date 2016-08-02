@@ -1,4 +1,4 @@
-# Laravel 5 CDN Views
+# Laravel 5 CDN Middleware
 A Basic middleware integration for pull zone CDN's for laravel
 
 
